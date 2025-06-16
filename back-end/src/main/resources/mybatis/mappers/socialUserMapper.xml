@@ -1,0 +1,26 @@
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.z_config.socialLogin.SocialUserMapper">
+<!--	<select id="findByEmail" resultType="com.boot.dto.UserDTO">-->
+<!--		SELECT * FROM userinfo WHERE userEmail = #{email}-->
+<!--	</select>-->
+
+	<select id="findByUserId" resultType="com.boot.user.dto.UserDTO">
+		SELECT * FROM user_info WHERE userId = #{userId}
+	</select>
+
+	<insert id="insertSocialUser" parameterType="com.boot.user.dto.UserDTO">
+		INSERT INTO user_info (
+		userNumber, userId, userName, userEmail, userRegdate
+		) VALUES (
+		(SELECT NVL(MAX(userNumber), 0) + 1 FROM user_info),
+		#{userId},
+		#{userName},
+		#{userEmail, jdbcType=VARCHAR},
+		SYSDATE
+		)
+	</insert>
+
+</mapper>

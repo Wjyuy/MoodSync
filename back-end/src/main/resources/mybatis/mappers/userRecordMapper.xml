@@ -1,0 +1,94 @@
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.userRecord.dao.UserRecordDAO">
+
+ 	<select id="findById" parameterType="long" resultType="com.boot.userRecord.dto.UserRecordDTO">
+        SELECT
+            id,
+            userNumber,
+            happy,
+            sad,
+            stress,
+            calm,
+            excited,
+            tired,
+            music_ids,
+            action_ids,
+            book_ids,
+            created_at
+        FROM userRecord
+        WHERE id = #{id}
+    </select>
+    
+    <select id="findByNumAndDate" parameterType="map" resultType="com.boot.userRecord.dto.UserRecordDTO">
+        SELECT
+            id,             
+            userNumber,    
+            happy,
+            sad,
+            stress,
+            calm,
+            excited,
+            tired,
+            music_ids,
+            action_ids,
+            book_ids,
+            created_at      
+         FROM userRecord
+        WHERE userNumber = #{userNumber} AND TRUNC(created_at) = #{recordDate}
+    </select>
+    
+    <select id="findLatestRecords" resultType="com.boot.userRecord.dto.UserRecordDTO">
+    	<![CDATA[
+    	SELECT *
+    	FROM(
+	        SELECT *
+	        FROM (
+	            SELECT * FROM userRecord 
+	            WHERE userNumber = #{userNumber}
+	            ORDER BY created_at DESC
+	        )
+	        WHERE ROWNUM <= 7
+	    )
+	    ORDER BY created_at ASC
+    	]]>
+    </select>
+    
+	<select id="findInfoByActingNumbers" resultType="com.boot.userRecord.dto.ActingExceptEmotionDTO">
+        SELECT
+            actingNumber, actingName
+        FROM
+            emotionActing
+        WHERE
+            actingNumber IN
+            <foreach collection="actingNumbers" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+    </select>
+	<select id="findInfoByBookNumbers" resultType="com.boot.userRecord.dto.BookExceptEmotionDTO">
+        SELECT
+            bookNumber, bookName, bookAuthor
+        FROM
+            emotionBook
+        WHERE
+            bookNumber IN
+            <foreach collection="bookNumbers" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+    </select>
+	<select id="findInfoByMusicNumbers" resultType="com.boot.userRecord.dto.MusicExceptEmotionDTO">
+        SELECT
+            musicNumber, musicName, musicAuthor
+        FROM
+            emotionMusic
+        WHERE
+            musicNumber IN
+            <foreach collection="musicNumbers" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+    </select>
+</mapper>
+

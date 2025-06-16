@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<mappers>
+		<mapper resource="mybatis/mappers/userMapper.xml"/>
+		<mapper resource="mybatis/mappers/actingMapper.xml"/>
+		<mapper resource="mybatis/mappers/musicMapper.xml"/>
+		<mapper resource="mybatis/mappers/bookMapper.xml"/>
+		<mapper resource="mybatis/mappers/userRecordMapper.xml"/>
+		<mapper resource="mybatis/mappers/YoutubeVideoMapper.xml"/>
+		<mapper resource="mybatis/mappers/collectionMapper.xml"/>
+		<mapper resource="mybatis/mappers/contactMapper.xml"/>
+		<mapper resource="mybatis/mappers/feedbackMapper.xml"/>
+		<mapper resource="mybatis/mappers/answerMapper.xml"/>
+		
+<!--		데이터 분석-->
+		<mapper resource="mybatis/mappers/analizeContactMapper.xml"/>
+		<mapper resource="mybatis/mappers/analizeFeedbackMapper.xml"/>
+		<mapper resource="mybatis/mappers/userChurnMapper.xml"/>
+		<mapper resource="mybatis/mappers/userClusteringMapper.xml"/>
+	</mappers>
+</configuration>

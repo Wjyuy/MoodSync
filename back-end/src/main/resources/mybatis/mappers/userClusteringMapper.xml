@@ -1,0 +1,32 @@
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.analize.dao.UserClusteringDAO">
+
+<select id="findRecentEmotionData" resultType="com.boot.analize.dto.UserClusteringDTO">
+
+    SELECT *
+FROM (
+    SELECT
+        usernumber,
+        happy,
+        SAD,
+        STRESS,
+        CALM,
+        EXCITED,
+        TIRED,
+        created_at
+    FROM userrecord
+    ORDER BY created_at DESC
+)
+WHERE ROWNUM <![CDATA[ <= ]]> 1000
+
+</select>
+<select id="findEmotionDataByDate" resultType="com.boot.analize.dto.UserClusteringDTO">
+  SELECT usernumber, happy, sad, stress, calm, excited, tired, created_at
+  FROM userrecord
+  WHERE TO_CHAR(created_at, 'YYYYMMDD') = #{created_at}
+</select>
+
+</mapper>

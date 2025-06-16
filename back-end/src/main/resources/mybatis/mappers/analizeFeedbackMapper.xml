@@ -1,0 +1,13 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.analize.dao.AnalizeFeedbackDAO">
+
+    <select id="getFeedbackCount" resultType="com.boot.analize.dto.AnalizeFeedbackDTO">
+    SELECT FEEDBACK_CATEGORY
+     , COUNT(*)            AS COUNT
+     , AVG(FEEDBACK_SCORE) AS AVG_SCORE
+  FROM USER_FEEDBACK
+ WHERE TO_CHAR(CREATED_DATE, 'YYYYMMDD')= #{created_date}
+ GROUP BY FEEDBACK_CATEGORY
+    </select>
+</mapper>

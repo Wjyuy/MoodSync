@@ -1,0 +1,27 @@
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.tensor.dao.BookDAO">
+<select id="getBookDTO" resultType="com.boot.tensor.dto.BookDTO">
+select * from EMOTIONBOOK
+</select>
+
+<select id="getRandomBook" resultType="com.boot.tensor.dto.BookDTO">
+SELECT * FROM (
+        SELECT * FROM emotionBook 
+        WHERE bookSubNumber = #{bookSubNumber}
+        ORDER BY DBMS_RANDOM.VALUE
+    ) 
+    WHERE ROWNUM &lt;= 1
+
+<!--select * from emotionBook where bookSubNumber=#{bookSubNumber}AND ROWNUM = 1-->
+
+<!--select * from emotionBook -->
+<!--where emotionNumber = #{emotionNumber} -->
+<!--AND bookSubNumber = #{bookSubNumber}-->
+<!--AND ROWNUM = 1-->
+</select>
+</mapper>
+

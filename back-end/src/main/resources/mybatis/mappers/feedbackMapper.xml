@@ -1,0 +1,133 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.feedback.dao.FeedbackDAO">
+
+    <!-- 피드백 생성 -->
+    <insert id="createFeedback" parameterType="map">
+        <selectKey keyProperty="feedbackId" resultType="int" order="BEFORE">
+            SELECT NVL(MAX(FEEDBACKID), 0) + 1 FROM user_feedback
+        </selectKey>
+        INSERT INTO user_feedback(FEEDBACKID, USERNUMBER, FEEDBACK_CATEGORY, FEEDBACK_SCORE, FEEDBACK_CONTENT) 
+        VALUES(#{feedbackId}, #{userNumber}, #{feedbackCategory}, #{feedbackScore}, #{feedbackContent})
+    </insert>
+
+    <!-- 특정 피드백 조회 (ID 반환) -->
+    <select id="readFeedback" parameterType="map" resultType="int">
+        SELECT FEEDBACKID 
+        FROM user_feedback 
+        WHERE USERNUMBER = #{userNumber} 
+        AND FEEDBACK_CATEGORY = #{feedbackCategory} 
+        AND FEEDBACK_SCORE = #{feedbackScore}
+        AND FEEDBACK_CONTENT = #{feedbackContent}
+        AND ROWNUM = 1
+    </select>
+
+    <!-- 피드백 삭제 (관리자용 - 실제로는 상태 변경) -->
+    <update id="deleteFeedbackAdmin" parameterType="map">
+        UPDATE user_feedback 
+        SET STATUS = 'DELETED',
+            DELETED_DATE = SYSDATE
+        WHERE FEEDBACKID = #{feedbackId}
+    </update>
+
+    <!-- 전체 피드백 조회 (페이징) -->
+    <select id="allReadFeedback" parameterType="com.boot.z_page.criteria.CriteriaDTO" resultType="com.boot.feedback.dto.FeedbackDTO">
+        <![CDATA[
+       	SELECT feedbackId, userNumber, userName, feedbackCategory, feedbackScore, feedbackContent, createdDate
+        FROM (
+            SELECT rownum as rn, feedbackId, userNumber, userName, feedbackCategory, feedbackScore, feedbackContent, createdDate
+            FROM (
+                SELECT uf.FEEDBACKID as feedbackId,
+                       uf.USERNUMBER as userNumber,
+                       ui.userName as userName,
+                       uf.FEEDBACK_CATEGORY as feedbackCategory,
+                       uf.FEEDBACK_SCORE as feedbackScore,
+                       uf.FEEDBACK_CONTENT as feedbackContent,
+                       to_char(uf.created_date, 'YYYY-MM-DD HH24:MI') as createdDate
+                FROM user_feedback uf
+                LEFT JOIN user_info ui ON uf.USERNUMBER = ui.USERNUMBER
+                WHERE uf.status = 'ACTIVE'
+                ORDER BY uf.created_date DESC
+            ) a
+            WHERE rownum <= (#{pageNum} * #{amount})
+        ) aa
+        WHERE rn > (#{pageNum} - 1) * #{amount}
+        ]]>
+    </select>
+
+    <!-- 전체 개수 조회 (페이징용) -->
+    <select id="getTotalCount" parameterType="com.boot.z_page.criteria.CriteriaDTO" resultType="int">
+        SELECT COUNT(*) 
+        FROM user_feedback 
+        WHERE NVL(STATUS, 'ACTIVE') != 'DELETED'
+    </select>
+
+    <!-- 사용자 본인의 피드백 조회 (페이징) - 주석 해제시 사용 -->
+    <!--
+    <select id="onlyUserFeedback" parameterType="map" resultType="com.boot.feedback.dto.FeedbackDTO">
+        <![CDATA[
+        SELECT feedbackId, userNumber, feedbackCategory, feedbackScore, feedbackContent, createdDate
+        FROM (
+            SELECT rownum as rn, feedbackId, userNumber, feedbackCategory, feedbackScore, feedbackContent, createdDate
+            FROM (
+                SELECT FEEDBACKID as feedbackId,
+                       USERNUMBER as userNumber,
+                       FEEDBACK_CATEGORY as feedbackCategory,
+                       FEEDBACK_SCORE as feedbackScore,
+                       FEEDBACK_CONTENT as feedbackContent,
+                       CREATED_DATE as createdDate
+                FROM user_feedback
+                WHERE USERNUMBER = #{userNumber}
+                AND NVL(STATUS, 'ACTIVE') != 'DELETED'
+                ORDER BY created_date DESC
+            ) a
+            WHERE rownum <= (#{pageNum} * #{amount})
+        ) aa
+        WHERE rn > (#{pageNum} - 1) * #{amount}
+        ]]>
+    </select>
+    -->
+
+    <!-- 사용자 본인의 피드백 총 개수 조회 (페이징용) - 주석 해제시 사용 -->
+    <!--
+    <select id="getUserFeedbackCount" parameterType="map" resultType="int">
+        SELECT COUNT(*) 
+        FROM user_feedback 
+        WHERE USERNUMBER = #{userNumber}
+        AND NVL(STATUS, 'ACTIVE') != 'DELETED'
+    </select>
+    -->
+<!-- 총 피드백 개수 -->
+<select id="getTotalFeedbacks" resultType="int">
+    SELECT COUNT(*) 
+    FROM user_feedback 
+    WHERE NVL(STATUS, 'ACTIVE') != 'DELETED'
+</select>
+
+<!-- 평균 점수 -->
+<select id="getAverageScore" resultType="double">
+    SELECT AVG(FEEDBACK_SCORE) 
+    FROM user_feedback 
+    WHERE NVL(STATUS, 'ACTIVE') != 'DELETED'
+    AND FEEDBACK_SCORE IS NOT NULL
+</select>
+
+<!-- 카테고리별 통계 -->
+<select id="getFeedbackByCategory" resultType="map">
+    SELECT FEEDBACK_CATEGORY as category, COUNT(*) as count
+    FROM user_feedback 
+    WHERE NVL(STATUS, 'ACTIVE') != 'DELETED'
+    GROUP BY FEEDBACK_CATEGORY
+    ORDER BY COUNT(*) DESC
+</select>
+
+<!-- 점수별 통계 -->
+<select id="getFeedbackByScore" resultType="map">
+    SELECT FEEDBACK_SCORE as score, COUNT(*) as count
+    FROM user_feedback 
+    WHERE NVL(STATUS, 'ACTIVE') != 'DELETED'
+    AND FEEDBACK_SCORE IS NOT NULL
+    GROUP BY FEEDBACK_SCORE
+    ORDER BY FEEDBACK_SCORE
+</select>
+</mapper>

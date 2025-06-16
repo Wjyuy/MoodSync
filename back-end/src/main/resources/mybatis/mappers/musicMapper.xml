@@ -1,0 +1,21 @@
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.tensor.dao.MusicDAO">
+<select id="getMusicDTO" resultType="com.boot.tensor.dto.MusicDTO">
+select * from EMOTIONMUSIC
+</select>
+
+<select id="getRandomMusic" resultType="com.boot.tensor.dto.MusicDTO">
+SELECT * FROM (
+        SELECT * FROM emotionMusic 
+        WHERE musicSubNumber = #{musicSubNumber}
+        ORDER BY DBMS_RANDOM.VALUE
+    ) 
+    WHERE ROWNUM &lt;= 1
+    
+<!--select * from emotionMusic where musicSubNumber=#{musicSubNumber}AND ROWNUM = 1-->
+</select>
+</mapper>
+

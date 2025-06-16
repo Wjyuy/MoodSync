@@ -1,0 +1,15 @@
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.userRecord.dao.YoutubeVideoDAO">
+
+    <select id="findVideoIdByMusicNumber" parameterType="long" resultType="string">
+        SELECT video_id
+        FROM youtubeVideo
+        WHERE musicNumber = #{musicNumber}
+    </select>
+    
+</mapper>
+

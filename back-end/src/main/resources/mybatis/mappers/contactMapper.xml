@@ -1,0 +1,108 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boot.contact.dao.ContactDAO">
+
+    <!-- 문의 생성 -->
+    <insert id="createContact" parameterType="map">
+        <selectKey keyProperty="contactId" resultType="int" order="BEFORE">
+            SELECT NVL(MAX(CONTACTID), 0) + 1 FROM user_contact
+        </selectKey>
+        INSERT INTO user_contact(CONTACTID, USERNUMBER, CONTACT_TITLE, CONTACT_CONTENT, CREATED_DATE) 
+        VALUES(#{contactId}, #{userNumber}, #{contact_title}, #{contact_content}, SYSDATE)
+    </insert>
+
+    <!-- 특정 문의 조회 (ID 반환) -->
+    <select id="readContact" parameterType="map" resultType="int">
+        SELECT CONTACTID 
+        FROM user_contact 
+        WHERE USERNUMBER = #{userNumber} 
+        AND CONTACT_TITLE = #{contact_title} 
+        AND CONTACT_CONTENT = #{contact_content}
+        AND ROWNUM = 1
+    </select>
+
+    <!-- 문의 수정 -->
+    <update id="updateContact" parameterType="map">
+        UPDATE user_contact 
+        SET CONTACT_TITLE = #{contact_title}, 
+            CONTACT_CONTENT = #{contact_content},
+            UPDATED_DATE = SYSDATE
+        WHERE USERNUMBER = #{userNumber} 
+        AND contactId = #{contactId}
+    </update>
+
+    <!-- 문의 삭제 (실제로는 상태 변경) -->
+    <update id="deleteContact" parameterType="map">
+        UPDATE user_contact 
+        SET STATUS = 'DELETED',
+            DELETED_DATE = SYSDATE
+        WHERE USERNUMBER = #{userNumber} 
+        AND contactId = #{contactId}
+    </update>
+
+    <!-- 전체 문의 조회 -->
+		<select id="allReadContact" parameterType="com.boot.z_page.criteria.CriteriaDTO" resultType="com.boot.contact.dto.ContactDTO">
+		    SELECT contactId, userNumber, userName, contactTitle, contactContent, createdDate
+		    FROM (
+		        SELECT rownum as rn, contactId, userNumber, userName, contactTitle, contactContent, createdDate
+		        FROM (
+		            SELECT 
+		                uc.CONTACTID as contactId,
+		                uc.USERNUMBER as userNumber,
+		                ui.USERNAME as userName,
+		                uc.CONTACT_TITLE as contactTitle,
+		                uc.CONTACT_CONTENT as contactContent,
+		                to_char(uc.created_date, 'YYYY-MM-DD HH24:MI') as createdDate
+		            FROM user_contact uc
+		            LEFT JOIN user_info ui ON uc.USERNUMBER = ui.USERNUMBER
+		            WHERE uc.STATUS = 'ACTIVE'
+		            ORDER BY uc.CREATED_DATE
+		        ) a
+		        WHERE rownum <![CDATA[<=]]> (#{pageNum} * #{amount})
+		    ) aa
+		    WHERE rn > (#{pageNum} - 1) * #{amount}
+		</select>
+
+
+    <!-- 전체 개수 조회 (페이징용) -->
+    <select id="getTotalCount" parameterType="com.boot.z_page.criteria.CriteriaDTO" resultType="int">
+        SELECT COUNT(*) 
+        FROM user_contact 
+        WHERE NVL(STATUS, 'ACTIVE') != 'DELETED'
+    </select>
+
+    <!-- 사용자 본인의 문의 조회 (페이징) -->
+    <select id="onlyUserContact" parameterType="map" resultType="com.boot.contact.dto.ContactDTO">
+        <![CDATA[
+        SELECT contactId, userNumber, contactTitle, contactContent, createdDate
+        FROM (
+            SELECT rownum as rn, contactId, userNumber, contactTitle, contactContent, createdDate
+            FROM (
+                SELECT CONTACTID as contactId,
+                       USERNUMBER as userNumber,
+                       CONTACT_TITLE as contactTitle,
+                       CONTACT_CONTENT as contactContent,
+                       to_char(created_date, 'YYYY-MM-DD HH24:MI') as createdDate
+                FROM user_contact
+                WHERE USERNUMBER = #{userNumber}
+                AND NVL(STATUS, 'ACTIVE') != 'DELETED'
+                ORDER BY created_date DESC
+            ) a
+            WHERE rownum <= (#{pageNum} * #{amount})
+        ) aa
+        WHERE rn > (#{pageNum} - 1) * #{amount}
+        ]]>
+    </select>
+
+    <!-- 사용자 본인의 문의 총 개수 조회 (페이징용) -->
+    <select id="getUserContactCount" parameterType="map" resultType="int">
+        SELECT COUNT(*) 
+        FROM user_contact 
+        WHERE USERNUMBER = #{userNumber}
+        AND NVL(STATUS, 'ACTIVE') != 'DELETED'
+    </select>
+    <select id="getNotyetAnswer" resultType="int">
+    	select count(*) from user_contact where status = 'ACTIVE'
+    </select>
+    
+</mapper>

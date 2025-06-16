@@ -1,0 +1,168 @@
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.boot.collection.dao.CollectionDAO">
+    <insert id="insertCollection" parameterType="com.boot.collection.dto.CollectionDTO">
+    <selectKey keyProperty="collectionId" resultType="int" order="AFTER">
+        SELECT MAX(collectionId) FROM collections WHERE userId = #{userId} AND name = #{name}
+    </selectKey>
+        INSERT INTO collections (collectionId, userId, name, description, isPublic) 
+        VALUES (
+            (SELECT NVL(MAX(collectionId), 0) + 1 FROM collections),
+            #{userId},   -- DTO의 userId 필드와 매핑
+            #{name},
+            #{description},
+            #{isPublic}
+        )
+    </insert>
+
+    <update id="updateCollection" parameterType="com.boot.collection.dto.CollectionDTO">
+        UPDATE collections
+        SET name=#{name}, description=#{description}, isPublic=#{isPublic}, updatedAt=SYSTIMESTAMP 
+        WHERE collectionId=#{collectionId}
+    </update>
+    <delete id="deleteCollection" parameterType="int">
+        DELETE FROM collections WHERE collectionId=#{id} 
+    </delete>
+    <select id="selectCollection" parameterType="int" resultType="com.boot.collection.dto.CollectionDTO">
+	    SELECT
+            c.collectionId,
+            c.userId,
+            c.name,
+            c.description,
+            c.isPublic,
+            c.createdAt,
+            c.updatedAt,
+            ui.userName 
+        FROM collections c
+        LEFT JOIN user_info ui ON c.userId = ui.userNumber
+        WHERE c.collectionId = #{id}
+<!--        SELECT collectionId, userId, name, description, isPublic, createdAt, updatedAt -->
+<!--        FROM collections-->
+<!--        WHERE collectionId=#{id}-->
+    </select>
+    <select id="selectAllCollections" resultType="com.boot.collection.dto.CollectionDTO">
+        SELECT collectionId, userId, name, description, isPublic, createdAt, updatedAt -- 컬럼 명시적 지정 권장
+        FROM collections
+    </select>
+    <select id="findCollectionsByUserId" parameterType="int" resultType="com.boot.collection.dto.CollectionDTO">
+	    SELECT collectionId, userId, name, description, isPublic, createdAt, updatedAt
+	    FROM collections
+	    WHERE userId = #{userId}
+	    ORDER BY createdAt DESC
+	</select>
+	
+<!--	메인화면에서 컬렉션에 해당하는 아이템 갯수 출력-->
+    <select id="countCollectionItemsByCollectionId" parameterType="int" resultType="int">
+	    SELECT
+            COUNT(*)
+        FROM
+            COLLECTION_ITEMS
+        WHERE
+            collectionId = #{collectionId}
+	</select>
+	
+	
+    <!-- 아이템 조회 -->
+    <select id="findByCollectionId" resultType="com.boot.collection.dto.CollectionItemDTO">
+        SELECT
+            collectionItemId,
+            collectionId,
+            contentTitle,
+            contentType,
+            addedAt,
+            itemOrder
+        FROM COLLECTION_ITEMS
+        WHERE collectionId = #{collectionId}
+        ORDER BY itemOrder ASC, ADDEDAT desc
+    </select>
+
+    <!-- collectionItem 삽입 -->
+    <insert id="insertCollectionItem" parameterType="com.boot.collection.dto.CollectionItemDTO">
+        INSERT INTO COLLECTION_ITEMS (
+            collectionItemId,
+            collectionId,
+            contentTitle,
+            contentType,
+            itemOrder
+        ) VALUES (
+            (SELECT NVL(MAX(collectionItemId), 0) + 1 FROM COLLECTION_ITEMS),
+            #{collectionId},
+            #{contentTitle},
+            #{contentType},
+            #{itemOrder}
+        )
+    </insert>
+
+    <!-- collectionItem 수정 -->
+    <update id="updateCollectionItem" parameterType="com.boot.collection.dto.CollectionItemDTO">
+        UPDATE COLLECTION_ITEMS
+        SET
+            collectionId = #{collectionId},
+            contentTitle = #{contentTitle},
+            contentType = #{contentType},
+            addedAt = #{addedAt, jdbcType=TIMESTAMP}
+        WHERE collectionItemId = #{collectionItemId}
+    </update>
+
+    <!-- collectionItem 삭제 -->
+    <delete id="deleteCollectionItem" parameterType="int">
+        DELETE FROM COLLECTION_ITEMS
+        WHERE collectionItemId = #{itemId}
+    </delete>
+
+    <!-- 특정 collectionId에 속하는 모든 아이템 삭제 (컬렉션 삭제 시 CASCADE 동작) -->
+    <delete id="deleteBycollectionId" parameterType="int">
+        DELETE FROM COLLECTION_ITEMS
+        WHERE collectionId = #{collectionId}
+    </delete>
+
+    <select id="selectCollectionItemById" resultType="com.boot.collection.dto.CollectionItemDTO">
+        SELECT
+            collectionItemId,
+            collectionId,
+            contentTitle,
+            contentType,
+            addedAt,
+            itemOrder
+        FROM COLLECTION_ITEMS
+        WHERE collectionId = #{collectionId} AND collectionItemId = #{collectionItemId}
+    </select>
+
+    <select id="findCollectionItemsByCollectionIdOrderByItemOrderAsc" resultType="com.boot.collection.dto.CollectionItemDTO">
+        SELECT
+            collectionItemId,
+            collectionId,
+            contentTitle,
+            contentType,
+            addedAt,
+            itemOrder
+        FROM COLLECTION_ITEMS
+        WHERE collectionId = #{collectionId}
+        ORDER BY itemOrder ASC
+    </select>
+
+    <update id="updateCollectionItemOrder">
+        UPDATE COLLECTION_ITEMS
+        SET itemOrder = #{itemOrder}
+        WHERE collectionItemId = #{collectionItemId}
+    </update>
+    
+    <select id="shareCollectionsIsPublic" resultType="com.boot.collection.dto.CollectionDTO">
+	    SELECT
+            c.collectionId,
+            c.userId,
+            c.name,
+            c.description,
+            c.isPublic,
+            c.createdAt,
+            c.updatedAt,
+            ui.userName 
+        FROM collections c
+        LEFT JOIN user_info ui ON c.userId = ui.userNumber
+        WHERE ISPUBLIC=1
+        ORDER BY updatedAt DESC
+	</select>
+	
+</mapper>
