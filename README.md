@@ -244,7 +244,7 @@ export function mapEmotionsToMoodSync(expressions: FaceExpressions): CustomMoodS
     * 서버 불안정으로 동작 안될 수 있음
     * 리콜통계 부분은 render 서버로 호환x  -->
   * **GitHub Repository:** 
-    * [[팀장 우주연-GitHub Repository URL](https://github.com/Wjyuy)]
+    * [[우주연-GitHub Repository URL](https://github.com/Wjyuy)]
 
   * **발표자료** 
 
